@@ -1,0 +1,653 @@
+:host {
+  display: block;
+  height: 100vh;
+  background: #f5f7fa;
+  transition: background 0.3s ease;
+}
+
+.toolbar {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  color: #fff;
+  padding: 0 24px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+
+  .title { 
+    font-weight: 600; 
+    font-size: 1.3rem;
+    letter-spacing: -0.5px;
+    color: #fff;
+  }
+  .spacer { flex: 1 1 auto; }
+  
+  .theme-toggle {
+    margin-left: 8px;
+    .mat-slide-toggle-thumb {
+      background-color: #f5f7fa;
+    }
+    .mat-slide-toggle-bar {
+      background-color: rgba(255,255,255,0.3);
+    }
+    &.mat-checked .mat-slide-toggle-bar {
+      background-color: #4a9eff;
+    }
+  }
+
+  .lang-toggle {
+    margin-right: 16px;
+    border-radius: 24px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.08);
+    
+    mat-button-toggle {
+      min-width: 44px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      background: transparent;
+      color: rgba(255,255,255,0.7);
+      border: none;
+      transition: all 0.2s;
+      
+      &.mat-button-toggle-checked {
+        background: #fff;
+        color: #1a1a2e;
+        border-radius: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      }
+      
+      &:hover:not(.mat-button-toggle-checked) {
+        color: #fff;
+        background: rgba(255,255,255,0.1);
+      }
+    }
+  }
+}
+
+.main-container {
+  display: flex;
+  flex-direction: row;
+  gap: 24px;
+  padding: 24px;
+  height: calc(100vh - 64px);
+  overflow: hidden;
+
+  @media (max-width: 800px) {
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .editor-panel {
+    flex: 1 1 50%;
+    overflow-y: auto;
+    padding-right: 16px;
+    height: 100%;
+    background: transparent;
+
+    h2 {
+      margin-top: 0;
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: rgba(0, 0, 0, 0.87);
+      margin-bottom: 16px;
+    }
+
+    .full-width { width: 100%; }
+
+    .array-item {
+      margin-bottom: 20px;
+      padding: 18px;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(4px);
+      border-radius: 16px;
+      transition: background 0.3s, box-shadow 0.2s;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .chip-input-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 12px;
+
+      .quill-editor {
+        flex: 1;
+        min-width: 0;
+
+        .ql-container {
+          min-height: 60px;
+          border-radius: 0 0 4px 4px;
+        }
+        
+        .ql-toolbar {
+          border-radius: 4px 4px 0 0;
+        }
+      }
+
+      mat-form-field {
+        flex: 1;
+      }
+    }
+
+    mat-divider { 
+      margin: 16px 0; 
+      opacity: 0.3;
+    }
+    
+    mat-form-field {
+      margin-bottom: 12px;
+    }
+  }
+
+  .preview-panel {
+    flex: 1 1 50%;
+    overflow-y: auto;
+    padding-left: 16px;
+    height: 100%;
+
+    h2 {
+      margin-top: 0;
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: rgba(0, 0, 0, 0.87);
+      margin-bottom: 16px;
+    }
+
+    .preview-wrapper {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.06);
+      transition: background 0.3s, box-shadow 0.3s;
+      min-height: 100%;
+      border: 1px solid rgba(0,0,0,0.02);
+    }
+  }
+}
+
+.row-gap {
+  display: flex;
+  gap: 12px;
+  .flex-half {
+    flex: 1;
+  }
+}
+
+.cv-paper {
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.6;
+  color: #1e1e1e;
+  background: white;
+  padding: 20px;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+
+  h1 {
+    font-size: 26px;
+    margin: 0 0 4px 0;
+    font-weight: 700;
+  }
+  .contact-line {
+    font-size: 14px;
+    color: #444;
+    margin-bottom: 16px;
+    a { color: #1a73e8; text-decoration: none; }
+  }
+  h2 {
+    font-size: 18px;
+    margin: 20px 0 8px 0;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 4px;
+    font-weight: 600;
+  }
+  .preview-item {
+    margin-bottom: 12px;
+    .item-header {
+      font-weight: 500;
+      .item-date {
+        float: right;
+        font-weight: 400;
+        color: #555;
+      }
+    }
+    p {
+      margin: 4px 0 0 0;
+      font-size: 14px;
+    }
+  }
+}
+
+// ============================================
+// QUILL WYSIWYG EDITOR STILOVI
+// ============================================
+
+.quill-editor {
+  .ql-container {
+    min-height: 120px;
+    border-radius: 0 0 4px 4px;
+    font-size: 14px;
+    font-family: inherit;
+    background: white;
+  }
+  
+  .ql-toolbar {
+    border-radius: 4px 4px 0 0;
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(0, 0, 0, 0.12);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-bottom: none;
+  }
+
+  .ql-container {
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-top: none;
+  }
+
+  // Quill editor unutar array-item
+  .array-item & {
+    .ql-toolbar {
+      background: rgba(255, 255, 255, 0.3);
+    }
+    .ql-container {
+      background: rgba(255, 255, 255, 0.5);
+    }
+  }
+}
+
+// ============================================
+// AI FIELD CONTAINER
+// ============================================
+
+.ai-field-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  
+  .quill-editor {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .ai-inline-btn {
+    margin-top: 4px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+  }
+}
+
+// ============================================
+// DARK THEME (DeepSeek inspirirana)
+// ============================================
+
+body.dark-theme {
+  background: #0d1117;
+  color: #e6edf3;
+
+  .main-container { background: #0d1117; }
+
+  .toolbar {
+    background: linear-gradient(135deg, #161b22 0%, #0d1117 100%);
+    border-bottom: 1px solid #30363d;
+    
+    .title { color: #f0f6fc; }
+    
+    .lang-toggle {
+      background: rgba(255, 255, 255, 0.06);
+      
+      mat-button-toggle {
+        color: rgba(255,255,255,0.6);
+        &.mat-button-toggle-checked {
+          background: #238636;
+          color: #fff;
+          box-shadow: 0 2px 8px rgba(35,134,54,0.3);
+        }
+        &:hover:not(.mat-button-toggle-checked) {
+          color: #fff;
+          background: rgba(255,255,255,0.08);
+        }
+      }
+    }
+    
+    .theme-toggle {
+      .mat-slide-toggle-thumb {
+        background-color: #f0f6fc;
+      }
+      .mat-slide-toggle-bar {
+        background-color: rgba(255,255,255,0.2);
+      }
+      &.mat-checked .mat-slide-toggle-bar {
+        background-color: #238636;
+      }
+    }
+  }
+
+  .editor-panel {
+    h2 { color: #f0f6fc; }
+    
+    .array-item {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      backdrop-filter: none;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    }
+    
+    .chip-input-row {
+      .quill-editor {
+        .ql-toolbar {
+          background: #0d1117;
+          border-color: #30363d;
+        }
+        .ql-container {
+          background: #161b22;
+          border-color: #30363d;
+          color: #e6edf3;
+        }
+      }
+    }
+
+    mat-form-field {
+      .mat-form-field-label {
+        color: rgba(255,255,255,0.7);
+      }
+      .mat-form-field-outline {
+        color: rgba(255,255,255,0.2);
+      }
+      .mat-input-element {
+        color: #f0f6fc;
+      }
+    }
+    
+    mat-divider { 
+      border-top-color: rgba(255,255,255,0.08);
+      opacity: 1;
+    }
+  }
+
+  .preview-panel {
+    h2 { color: #f0f6fc; }
+    
+    .preview-wrapper {
+      background: #161b22;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      border: 1px solid #30363d;
+    }
+  }
+
+  .cv-paper {
+    background: #161b22;
+    color: #e6edf3;
+    border-color: #30363d;
+    
+    h1 { color: #f0f6fc; }
+    h2 { 
+      border-bottom-color: #30363d;
+      color: #f0f6fc;
+    }
+    .contact-line {
+      color: #8b949e;
+      a { color: #58a6ff; }
+    }
+    .item-date { color: #8b949e; }
+    a { color: #58a6ff; }
+  }
+
+  // Quill WYSIWYG editor dark tema (globalno)
+  .quill-editor {
+    .ql-toolbar {
+      background: #0d1117;
+      border-color: #30363d;
+      
+      .ql-stroke {
+        stroke: #8b949e;
+      }
+      
+      .ql-fill {
+        fill: #8b949e;
+      }
+      
+      .ql-picker {
+        color: #8b949e;
+      }
+      
+      .ql-picker-label:hover,
+      .ql-picker-item:hover {
+        color: #f0f6fc;
+      }
+      
+      .ql-picker-options {
+        background: #161b22;
+        border-color: #30363d;
+      }
+    }
+    
+    .ql-container {
+      background: #161b22;
+      border-color: #30363d;
+      color: #e6edf3;
+    }
+    
+    .ql-editor {
+      color: #e6edf3;
+      
+      &.ql-blank::before {
+        color: #8b949e;
+      }
+    }
+  }
+
+  // Material Expansion Panel
+  mat-expansion-panel {
+    background: #161b22 !important;
+    color: #e6edf3 !important;
+    
+    .mat-expansion-panel-header {
+      background: transparent !important;
+      color: #f0f6fc !important;
+      
+      &:hover {
+        background: rgba(255,255,255,0.03) !important;
+      }
+    }
+    
+    .mat-expansion-indicator::after {
+      color: #8b949e;
+    }
+  }
+
+  // Custom scrollbar
+  ::-webkit-scrollbar-track {
+    background: #0d1117;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.15);
+    
+    &:hover {
+      background: rgba(255,255,255,0.25);
+    }
+  }
+
+  // AI button
+  .ai-inline-btn {
+    background: linear-gradient(135deg, #238636 0%, #1a7a2e 100%) !important;
+    box-shadow: 0 2px 8px rgba(35,134,54,0.3);
+    
+    &:hover {
+      background: linear-gradient(135deg, #1a7a2e 0%, #0f5c22 100%) !important;
+      box-shadow: 0 4px 12px rgba(35,134,54,0.4);
+    }
+  }
+
+  // Buttons
+  .mat-raised-button {
+    &.mat-primary {
+      background: linear-gradient(135deg, #238636 0%, #1a7a2e 100%) !important;
+      
+      &:hover {
+        background: linear-gradient(135deg, #1a7a2e 0%, #0f5c22 100%) !important;
+      }
+    }
+    
+    &.mat-warn {
+      background: linear-gradient(135deg, #da3633 0%, #b6231f 100%) !important;
+      
+      &:hover {
+        background: linear-gradient(135deg, #b6231f 0%, #8f1a17 100%) !important;
+      }
+    }
+  }
+
+  // Spinner overlay
+  .spinner-overlay {
+    background: rgba(13, 17, 23, 0.92);
+    color: #f0f6fc;
+    
+    mat-spinner {
+      circle {
+        stroke: #238636 !important;
+      }
+    }
+  }
+}
+
+// ============================================
+// Modern button styles
+// ============================================
+
+.mat-raised-button {
+  border-radius: 8px;
+  font-weight: 500;
+  padding: 0 16px;
+  height: 36px;
+  line-height: 36px;
+  transition: all 0.2s;
+  border: none;
+  
+  &.mat-primary {
+    background: linear-gradient(135deg, #3157d9 0%, #2a4bb2 100%);
+    color: #fff;
+    
+    &:hover {
+      background: linear-gradient(135deg, #2a4bb2 0%, #1f3a8f 100%);
+    }
+  }
+  
+  &.mat-warn {
+    background: linear-gradient(135deg, #d93157 0%, #b22a4b 100%);
+    color: #fff;
+    
+    &:hover {
+      background: linear-gradient(135deg, #b22a4b 0%, #8f1f3a 100%);
+    }
+  }
+}
+
+// ============================================
+// Spinner overlay
+// ============================================
+
+.spinner-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 1.2rem;
+  font-weight: 500;
+  
+  mat-spinner {
+    margin-bottom: 20px;
+  }
+}
+
+// ============================================
+// Custom scrollbar
+// ============================================
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  
+  &:hover {
+    background: rgba(0, 0, 0, 0.3);
+  }
+}
+
+// ============================================
+// Focus styles
+// ============================================
+
+mat-form-field.mat-focused .mat-form-field-outline {
+  border-width: 2px;
+}
+
+.mat-raised-button:focus,
+.mat-icon-button:focus,
+.mat-mini-fab:focus {
+  outline: none;
+}
+
+// ============================================
+// Responsive improvements
+// ============================================
+
+@media (max-width: 800px) {
+  .main-container {
+    padding: 12px;
+    
+    .editor-panel,
+    .preview-panel {
+      padding: 0;
+    }
+  }
+  
+  .toolbar {
+    padding: 0 12px;
+    
+    .lang-toggle {
+      margin-right: 8px;
+      
+      mat-button-toggle {
+        min-width: 38px;
+        font-size: 0.75rem;
+      }
+    }
+  }
+
+  .quill-editor .ql-toolbar {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .chip-input-row {
+    flex-wrap: wrap;
+    
+    .quill-editor {
+      flex: 1 1 100%;
+    }
+  }
+}

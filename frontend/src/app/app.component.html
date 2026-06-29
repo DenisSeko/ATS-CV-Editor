@@ -1,0 +1,368 @@
+<mat-toolbar color="primary" class="toolbar">
+  <span class="title">{{ getLabel('title') }}</span>
+  <span class="spacer"></span>
+
+  <!-- Jezični switcher -->
+  <mat-button-toggle-group
+    [value]="language"
+    (change)="toggleLanguage($event.value)"
+    class="lang-toggle"
+    hideSingleSelectionIndicator
+  >
+    <mat-button-toggle value="hr" matTooltip="Hrvatski / Croatian">HR</mat-button-toggle>
+    <mat-button-toggle value="en" matTooltip="English">EN</mat-button-toggle>
+  </mat-button-toggle-group>
+
+  <!-- Gumbi u toolbaru -->
+  <button mat-icon-button (click)="exportJson()" [matTooltip]="getLabel('exportJson')">
+    <mat-icon>download</mat-icon>
+  </button>
+  <button mat-icon-button (click)="exportPdf()" [matTooltip]="getLabel('exportPdf')">
+    <mat-icon>picture_as_pdf</mat-icon>
+  </button>
+
+  <!-- Import JSON -->
+  <label mat-icon-button [matTooltip]="getLabel('importJson')" style="cursor: pointer;">
+    <mat-icon>upload_file</mat-icon>
+    <input type="file" accept=".json" (change)="onImportJson($event)" style="display:none">
+  </label>
+
+  <!-- Import PDF -->
+  <label mat-icon-button [matTooltip]="getLabel('importPdf')" style="cursor: pointer; color: #ffeb3b;">
+    <mat-icon>auto_awesome</mat-icon>
+    <input type="file" accept=".pdf" (change)="onImportPdf($event)" style="display:none">
+  </label>
+
+  <!-- Import Markdown -->
+  <label mat-icon-button [matTooltip]="getLabel('importMarkdown')" style="cursor: pointer; color: #2196f3;">
+    <mat-icon>description</mat-icon>
+    <input type="file" accept=".md,.markdown,.txt" (change)="onImportMarkdown($event)" style="display:none">
+  </label>
+
+  <!-- 🔴 BRISANJE CV-a -->
+  <button mat-icon-button (click)="resetCV()" [matTooltip]="getLabel('deleteCV')" style="color: #ff4444;">
+    <mat-icon>delete_forever</mat-icon>
+  </button>
+
+  <!-- Dark/Light tema -->
+  <mat-slide-toggle
+    [checked]="themeService.isDarkMode()"
+    (toggleChange)="themeService.toggleTheme()"
+    class="theme-toggle"
+  >
+    {{ themeService.isDarkMode() ? '🌙' : '☀️' }}
+  </mat-slide-toggle>
+</mat-toolbar>
+
+<!-- Spinner overlay -->
+<div class="spinner-overlay" *ngIf="isLoading">
+  <mat-spinner></mat-spinner>
+  <p>{{ getLabel('processing') }}</p>
+</div>
+
+<!-- ============================================ -->
+<!-- GLAVNI SADRŽAJ -->
+<!-- ============================================ -->
+<div class="main-container">
+
+  <!-- ============ LIJEVI PANEL: Editor ============ -->
+  <div class="editor-panel">
+    <h2>{{ getLabel('editCV') }}</h2>
+
+    <!-- OSOBNI PODACI -->
+    <mat-expansion-panel expanded>
+      <mat-expansion-panel-header>{{ getLabel('personalInfo') }}</mat-expansion-panel-header>
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>{{ getLabel('fullName') }}</mat-label>
+        <input matInput [(ngModel)]="cv.personal.name" (ngModelChange)="onDataChange()">
+      </mat-form-field>
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>{{ getLabel('email') }}</mat-label>
+        <input matInput type="email" [(ngModel)]="cv.personal.email" (ngModelChange)="onDataChange()">
+      </mat-form-field>
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>{{ getLabel('phone') }}</mat-label>
+        <input matInput [(ngModel)]="cv.personal.phone" (ngModelChange)="onDataChange()">
+      </mat-form-field>
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>{{ getLabel('location') }}</mat-label>
+        <input matInput [(ngModel)]="cv.personal.location" (ngModelChange)="onDataChange()">
+      </mat-form-field>
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>{{ getLabel('linkedin') }}</mat-label>
+        <input matInput [(ngModel)]="cv.personal.linkedin" (ngModelChange)="onDataChange()">
+      </mat-form-field>
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>{{ getLabel('github') }}</mat-label>
+        <input matInput [(ngModel)]="cv.personal.github" (ngModelChange)="onDataChange()">
+      </mat-form-field>
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>{{ getLabel('twitter') }}</mat-label>
+        <input matInput [(ngModel)]="cv.personal.twitter" (ngModelChange)="onDataChange()">
+      </mat-form-field>
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>{{ getLabel('portfolio') }}</mat-label>
+        <input matInput [(ngModel)]="cv.personal.portfolio" (ngModelChange)="onDataChange()">
+      </mat-form-field>
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>{{ getLabel('website') }}</mat-label>
+        <input matInput [(ngModel)]="cv.personal.website" (ngModelChange)="onDataChange()">
+      </mat-form-field>
+    </mat-expansion-panel>
+
+    <!-- SAŽETAK - QUILL EDITOR -->
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>{{ getLabel('summary') }}</mat-expansion-panel-header>
+      <div class="ai-field-container">
+        <quill-editor
+          [(ngModel)]="cv.summary"
+          (onContentChanged)="onQuillChange($event)"
+          [modules]="quillModules"
+          placeholder="{{ getLabel('professionalSummary') }}"
+          class="full-width quill-editor"
+        ></quill-editor>
+        <button
+          mat-mini-fab
+          color="accent"
+          class="ai-inline-btn"
+          [matTooltip]="getLabel('aiImproveSummary')"
+          (click)="optimizeField('Profesionalni sažetak / Professional Summary', cv.summary, (val) => cv.summary = val)"
+        >
+          <mat-icon>auto_awesome</mat-icon>
+        </button>
+      </div>
+    </mat-expansion-panel>
+
+    <!-- RADNO ISKUSTVO -->
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>{{ getLabel('workExperience') }}</mat-expansion-panel-header>
+      <div *ngFor="let exp of cv.experience; let i = index" class="array-item">
+        <mat-form-field appearance="fill" class="full-width">
+          <mat-label>{{ getLabel('jobTitle') }}</mat-label>
+          <input matInput [(ngModel)]="exp.title" (ngModelChange)="onDataChange()">
+        </mat-form-field>
+        <mat-form-field appearance="fill" class="full-width">
+          <mat-label>{{ getLabel('company') }}</mat-label>
+          <input matInput [(ngModel)]="exp.company" (ngModelChange)="onDataChange()">
+        </mat-form-field>
+        <div class="row-gap">
+          <mat-form-field appearance="fill" class="flex-half">
+            <mat-label>{{ getLabel('start') }}</mat-label>
+            <input matInput [(ngModel)]="exp.start" (ngModelChange)="onDataChange()">
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="flex-half">
+            <mat-label>{{ getLabel('end') }}</mat-label>
+            <input matInput [(ngModel)]="exp.end" (ngModelChange)="onDataChange()">
+          </mat-form-field>
+        </div>
+        <div class="ai-field-container">
+          <quill-editor
+            [(ngModel)]="exp.description"
+            (onContentChanged)="onQuillChange($event)"
+            [modules]="quillModules"
+            placeholder="{{ getLabel('description') }}"
+            class="full-width quill-editor"
+          ></quill-editor>
+          <button
+            mat-mini-fab
+            color="accent"
+            class="ai-inline-btn"
+            [matTooltip]="getLabel('aiOptimizeJob')"
+            (click)="optimizeField('Opis posla za poziciju ' + exp.title, exp.description, (val) => exp.description = val)"
+          >
+            <mat-icon>auto_awesome</mat-icon>
+          </button>
+        </div>
+        <button mat-raised-button color="warn" (click)="removeItem('experience', i)">{{ getLabel('remove') }}</button>
+        <mat-divider></mat-divider>
+      </div>
+      <button mat-raised-button color="primary" (click)="addItem('experience', { title:'', company:'', start:'', end:'', description:'' })">
+        + {{ getLabel('addExperience') }}
+      </button>
+    </mat-expansion-panel>
+
+    <!-- OBRAZOVANJE -->
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>{{ getLabel('education') }}</mat-expansion-panel-header>
+      <div *ngFor="let edu of cv.education; let i = index" class="array-item">
+        <mat-form-field appearance="fill" class="full-width">
+          <mat-label>{{ getLabel('degree') }}</mat-label>
+          <input matInput [(ngModel)]="edu.degree" (ngModelChange)="onDataChange()">
+        </mat-form-field>
+        <mat-form-field appearance="fill" class="full-width">
+          <mat-label>{{ getLabel('institution') }}</mat-label>
+          <input matInput [(ngModel)]="edu.institution" (ngModelChange)="onDataChange()">
+        </mat-form-field>
+        <mat-form-field appearance="fill" class="full-width">
+          <mat-label>{{ getLabel('year') }}</mat-label>
+          <input matInput [(ngModel)]="edu.year" (ngModelChange)="onDataChange()">
+        </mat-form-field>
+        <button mat-raised-button color="warn" (click)="removeItem('education', i)">{{ getLabel('remove') }}</button>
+        <mat-divider></mat-divider>
+      </div>
+      <button mat-raised-button color="primary" (click)="addItem('education', { degree:'', institution:'', year:'' })">
+        + {{ getLabel('addEducation') }}
+      </button>
+    </mat-expansion-panel>
+
+    <!-- PROJEKTI -->
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>{{ getLabel('projects') }}</mat-expansion-panel-header>
+      <div *ngFor="let proj of cv.projects; let i = index" class="array-item">
+        <mat-form-field appearance="fill" class="full-width">
+          <mat-label>{{ getLabel('projectName') }}</mat-label>
+          <input matInput [(ngModel)]="proj.name" (ngModelChange)="onDataChange()">
+        </mat-form-field>
+        <mat-form-field appearance="fill" class="full-width">
+          <mat-label>{{ getLabel('projectDescription') }}</mat-label>
+          <textarea matInput rows="2" [(ngModel)]="proj.description" (ngModelChange)="onDataChange()"></textarea>
+        </mat-form-field>
+        <mat-form-field appearance="fill" class="full-width">
+          <mat-label>{{ getLabel('link') }}</mat-label>
+          <input matInput [(ngModel)]="proj.link" (ngModelChange)="onDataChange()">
+        </mat-form-field>
+        <button mat-raised-button color="warn" (click)="removeItem('projects', i)">{{ getLabel('remove') }}</button>
+        <mat-divider></mat-divider>
+      </div>
+      <button mat-raised-button color="primary" (click)="addItem('projects', { name:'', description:'', link:'' })">
+        + {{ getLabel('addProject') }}
+      </button>
+    </mat-expansion-panel>
+
+    <!-- CERTIFIKATI -->
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>{{ getLabel('certificates') }}</mat-expansion-panel-header>
+      <div *ngFor="let cert of cv.certificates; let i = index" class="array-item">
+        <mat-form-field appearance="fill" class="full-width">
+          <mat-label>{{ getLabel('certificateName') }}</mat-label>
+          <input matInput [(ngModel)]="cert.name" (ngModelChange)="onDataChange()">
+        </mat-form-field>
+        <mat-form-field appearance="fill" class="full-width">
+          <mat-label>{{ getLabel('issuer') }}</mat-label>
+          <input matInput [(ngModel)]="cert.issuer" (ngModelChange)="onDataChange()">
+        </mat-form-field>
+        <mat-form-field appearance="fill" class="full-width">
+          <mat-label>{{ getLabel('date') }}</mat-label>
+          <input matInput [(ngModel)]="cert.date" (ngModelChange)="onDataChange()">
+        </mat-form-field>
+        <button mat-raised-button color="warn" (click)="removeItem('certificates', i)">{{ getLabel('remove') }}</button>
+        <mat-divider></mat-divider>
+      </div>
+      <button mat-raised-button color="primary" (click)="addItem('certificates', { name:'', issuer:'', date:'' })">
+        + {{ getLabel('addCertificate') }}
+      </button>
+    </mat-expansion-panel>
+
+    <!-- VJEŠTINE - QUILL EDITOR -->
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>{{ getLabel('skills') }}</mat-expansion-panel-header>
+      <div *ngFor="let skill of cv.skills; let i = index" class="chip-input-row">
+        <quill-editor
+          [(ngModel)]="cv.skills[i]"
+          (onContentChanged)="onQuillChange($event)"
+          [modules]="quillModules"
+          [placeholder]="getLabel('skill') + ' #' + (i+1)"
+          class="full-width quill-editor"
+          style="flex: 1;"
+        ></quill-editor>
+        <button mat-icon-button color="warn" (click)="removeSkill(i)">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <button mat-raised-button color="primary" (click)="addSkill()">+ {{ getLabel('addSkill') }}</button>
+    </mat-expansion-panel>
+
+    <!-- JEZICI - QUILL EDITOR -->
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>{{ getLabel('languages') }}</mat-expansion-panel-header>
+      <div *ngFor="let lang of cv.languages; let i = index" class="chip-input-row">
+        <quill-editor
+          [(ngModel)]="cv.languages[i]"
+          (onContentChanged)="onQuillChange($event)"
+          [modules]="quillModules"
+          [placeholder]="getLabel('language') + ' #' + (i+1)"
+          class="full-width quill-editor"
+          style="flex: 1;"
+        ></quill-editor>
+        <button mat-icon-button color="warn" (click)="removeLanguage(i)">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <button mat-raised-button color="primary" (click)="addLanguage()">+ {{ getLabel('addLanguage') }}</button>
+    </mat-expansion-panel>
+  </div>
+
+  <!-- ============ DESNI PANEL: Preview ============ -->
+  <div class="preview-panel">
+    <h2>{{ getLabel('preview') }}</h2>
+    <div class="preview-wrapper">
+      <div #previewElement id="cvPreview" class="cv-paper">
+        <h1>{{ cv.personal.name || getLabel('fullName') }}</h1>
+        <div class="contact-line">
+          <span *ngIf="cv.personal.email">{{ cv.personal.email }}</span>
+          <span *ngIf="cv.personal.phone"> | {{ cv.personal.phone }}</span>
+          <span *ngIf="cv.personal.location"> | {{ cv.personal.location }}</span>
+          <span *ngIf="cv.personal.linkedin"> | <a [href]="cv.personal.linkedin" target="_blank">LinkedIn</a></span>
+          <span *ngIf="cv.personal.github"> | <a [href]="cv.personal.github" target="_blank">GitHub</a></span>
+          <span *ngIf="cv.personal.twitter"> | <a [href]="cv.personal.twitter" target="_blank">Twitter</a></span>
+          <span *ngIf="cv.personal.portfolio"> | <a [href]="cv.personal.portfolio" target="_blank">Portfolio</a></span>
+          <span *ngIf="cv.personal.website"> | <a [href]="cv.personal.website" target="_blank">Website</a></span>
+        </div>
+
+        <!-- Sažetak - prikaz HTML-a iz Quill editora -->
+        <h2 *ngIf="cv.summary">{{ getLabel('summary') }}</h2>
+        <p *ngIf="cv.summary" [innerHTML]="cv.summary"></p>
+
+        <!-- Radno iskustvo -->
+        <h2 *ngIf="cv.experience.length">{{ getLabel('workExperience') }}</h2>
+        <div *ngFor="let exp of cv.experience" class="preview-item">
+          <div class="item-header">
+            <strong>{{ exp.title }}</strong> – {{ exp.company }}
+            <span class="item-date">{{ exp.start }} – {{ exp.end }}</span>
+          </div>
+          <p *ngIf="exp.description" [innerHTML]="exp.description"></p>
+        </div>
+
+        <!-- Obrazovanje -->
+        <h2 *ngIf="cv.education.length">{{ getLabel('education') }}</h2>
+        <div *ngFor="let edu of cv.education" class="preview-item">
+          <div class="item-header">
+            <strong>{{ edu.degree }}</strong> – {{ edu.institution }}
+            <span class="item-date">{{ edu.year }}</span>
+          </div>
+        </div>
+
+        <!-- Projekti -->
+        <h2 *ngIf="cv.projects.length">{{ getLabel('projects') }}</h2>
+        <div *ngFor="let proj of cv.projects" class="preview-item">
+          <div class="item-header">
+            <strong>{{ proj.name }}</strong>
+            <span *ngIf="proj.link"> | <a [href]="proj.link" target="_blank">Link</a></span>
+          </div>
+          <p *ngIf="proj.description">{{ proj.description }}</p>
+        </div>
+
+        <!-- Certifikati -->
+        <h2 *ngIf="cv.certificates.length">{{ getLabel('certificates') }}</h2>
+        <div *ngFor="let cert of cv.certificates" class="preview-item">
+          <div class="item-header">
+            <strong>{{ cert.name }}</strong> – {{ cert.issuer }}
+            <span class="item-date">{{ cert.date }}</span>
+          </div>
+        </div>
+
+        <!-- Vještine - prikaz HTML-a iz Quill editora -->
+        <h2 *ngIf="cv.skills.length">{{ getLabel('skills') }}</h2>
+        <div *ngFor="let skill of cv.skills" class="preview-item">
+          <p [innerHTML]="skill"></p>
+        </div>
+
+        <!-- Jezici - prikaz HTML-a iz Quill editora -->
+        <h2 *ngIf="cv.languages.length">{{ getLabel('languages') }}</h2>
+        <div *ngFor="let lang of cv.languages" class="preview-item">
+          <p [innerHTML]="lang"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
